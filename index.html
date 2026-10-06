@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧宿舍管理系统</title>
+<style>
+  :root{
+    --primary:#4f46e5; --primary2:#8b5cf6; --bg:#f3f5fa; --card:#ffffff;
+    --text:#1f2937; --muted:#6b7280; --line:#e9edf5;
+    --green:#10b981; --amber:#f59e0b; --red:#ef4444; --blue:#3b82f6;
+    --side1:#171e3a; --side2:#252d59;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+  a{color:var(--primary);text-decoration:none}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#c9cfdd;border-radius:4px}
+
+  /* ---------- 登录页 / 品牌页 ---------- */
+  .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#312e81 0%,#4f46e5 35%,#7c3aed 70%,#a855f7 100%);position:relative;overflow:hidden}
+  .bubble{position:absolute;border-radius:50%;background:rgba(255,255,255,.08)}
+  .b1{width:420px;height:420px;top:-140px;left:-120px}
+  .b2{width:300px;height:300px;bottom:-100px;right:-60px}
+  .b3{width:160px;height:160px;bottom:120px;left:14%}
+  .auth-card{position:relative;width:440px;background:rgba(255,255,255,.96);border-radius:20px;padding:42px 44px;
+    box-shadow:0 24px 60px rgba(23,20,80,.35);animation:pop .5s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .auth-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px}
+  .auth-logo .ic{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary2));
+    display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff}
+  .auth-logo h1{font-size:22px;color:#111827}
+  .auth-sub{text-align:center;color:var(--muted);margin-bottom:26px;font-size:13px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;color:#374151;margin-bottom:6px;font-weight:600}
+  .field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1.5px solid #dfe4ef;border-radius:10px;
+    font-size:14px;outline:none;transition:.2s;background:#fbfcff;font-family:inherit}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+  .field textarea{resize:vertical;min-height:84px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:10px;
+    border:1.5px solid #dfe4ef;background:#fff;color:#374151;font-size:14px;cursor:pointer;transition:.15s;font-family:inherit}
+  .btn:hover{border-color:#c3c9d9;background:#f8fafc}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary2));border:none;color:#fff;font-weight:600;box-shadow:0 6px 16px rgba(79,70,229,.35)}
+  .btn-primary:hover{filter:brightness(1.08);background:linear-gradient(135deg,var(--primary),var(--primary2))}
+  .btn-danger{color:var(--red);border-color:#fecaca;background:#fef2f2}
+  .btn-danger:hover{background:#fee2e2;border-color:#fca5a5}
+  .btn-success{color:#047857;border-color:#a7f3d0;background:#ecfdf5}
+  .btn-block{width:100%;padding:12px;font-size:15px}
+  .demo-quick{display:flex;gap:10px;margin-top:18px}
+  .demo-quick .btn{flex:1;flex-direction:column;gap:2px;padding:10px}
+  .demo-quick small{color:var(--muted);font-weight:400}
+  .login-tip{margin-top:18px;text-align:center;font-size:12px;color:#9ca3af}
+
+  .brand-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#1e1b4b 0%,#4338ca 40%,#7c3aed 75%,#c026d3 100%);color:#fff;text-align:center;position:relative;overflow:hidden}
+  .brand-wrap .logo-big{width:110px;height:110px;border-radius:28px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;font-size:58px;margin-bottom:30px;border:1px solid rgba(255,255,255,.25)}
+  .brand-wrap h1{font-size:56px;letter-spacing:6px;text-shadow:0 4px 24px rgba(0,0,0,.3)}
+  .brand-wrap .en{font-size:16px;letter-spacing:4px;opacity:.75;margin:14px 0 34px;text-transform:uppercase}
+  .chips{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;max-width:900px}
+  .chip{padding:12px 26px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+    font-size:17px;letter-spacing:1px;backdrop-filter:blur(4px)}
+  .brand-foot{margin-top:56px;font-size:15px;opacity:.7;letter-spacing:2px}
+  .brand-wrap h2{font-size:46px;letter-spacing:4px}
+
+  /* ---------- 布局 ---------- */
+  .shell{display:flex;min-height:100vh}
+  .sidebar{width:230px;background:linear-gradient(180deg,var(--side1),var(--side2));color:#c7cbe8;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:20}
+  .side-logo{display:flex;align-items:center;gap:10px;padding:20px 18px;color:#fff}
+  .side-logo .ic{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px}
+  .side-logo b{font-size:16px;letter-spacing:1px}
+  .side-menu{flex:1;padding:8px 12px}
+  .menu-cap{font-size:11px;color:#7d84b4;padding:14px 10px 6px;letter-spacing:2px}
+  .menu-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:.15s;font-size:14px}
+  .menu-item:hover{background:rgba(255,255,255,.08);color:#fff}
+  .menu-item.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 6px 16px rgba(99,102,241,.4)}
+  .menu-item .mi{font-size:17px;width:22px;text-align:center}
+  .side-foot{padding:14px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#7d84b4}
+  .side-foot .link{cursor:pointer}
+  .side-foot .link:hover{color:#fff;text-decoration:underline}
+
+  .main{margin-left:230px;flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{height:62px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;
+    justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:10}
+  .topbar h2{font-size:17px;color:#111827}
+  .user-chip{display:flex;align-items:center;gap:10px}
+  .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+  .user-chip .info b{display:block;font-size:13px;color:#111827}
+  .user-chip .info span{font-size:11px;color:var(--muted)}
+  .role-tag{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+  .role-admin{background:#ede9fe;color:#6d28d9}
+  .role-student{background:#dbeafe;color:#1d4ed8}
+  .content{padding:24px 26px;flex:1}
+
+  /* ---------- 通用组件 ---------- */
+  .card{background:var(--card);border-radius:14px;box-shadow:0 1px 3px rgba(30,41,90,.06),0 8px 24px rgba(30,41,90,.05);padding:20px}
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:14px;flex-wrap:wrap}
+  .page-head h3{font-size:18px}
+  .page-head .desc{color:var(--muted);font-size:13px;margin-top:3px}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .search-input{padding:9px 14px;border:1.5px solid #dfe4ef;border-radius:10px;width:240px;outline:none;font-size:13px;background:#fff;font-family:inherit}
+  .search-input:focus{border-color:var(--primary)}
+  select.search-input{width:auto}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{background:#f8fafc;color:#475569;font-weight:600;text-align:left;padding:11px 12px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+  td{padding:11px 12px;border-bottom:1px solid #f1f4f9;vertical-align:middle}
+  tr:hover td{background:#fafbff}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+  .bg-amber{background:#fef3c7;color:#b45309}
+  .bg-green{background:#d1fae5;color:#047857}
+  .bg-red{background:#fee2e2;color:#b91c1c}
+  .bg-blue{background:#dbeafe;color:#1d4ed8}
+  .bg-gray{background:#e5e7eb;color:#4b5563}
+  .bg-violet{background:#ede9fe;color:#6d28d9}
+  .progress{height:8px;background:#eef1f7;border-radius:999px;overflow:hidden;min-width:80px}
+  .progress i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#6366f1,#a855f7)}
+  .ops{display:flex;gap:6px;flex-wrap:wrap}
+  .btn-xs{padding:4px 10px;font-size:12px;border-radius:8px}
+  .empty{padding:40px;text-align:center;color:#9ca3af}
+  .sub{color:var(--muted);font-size:12px}
+
+  /* 仪表盘 */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:18px}
+  .stat{background:#fff;border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(30,41,90,.06),0 8px 24px rgba(30,41,90,.05);display:flex;gap:14px;align-items:center}
+  .stat .ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+  .stat b{font-size:24px;display:block;line-height:1.1}
+  .stat span{color:var(--muted);font-size:12px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .list-item{display:flex;align-items:center;justify-content:space-between;padding:11px 4px;border-bottom:1px dashed #eef1f7;gap:10px}
+  .list-item:last-child{border-bottom:none}
+  .facility-chip{display:inline-block;background:#eef2ff;color:#4f46e5;border-radius:6px;padding:2px 8px;font-size:12px;margin:2px 4px 2px 0}
+
+  /* 弹窗 & 提示 */
+  .modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(2px);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  .modal{width:560px;max-width:94vw;max-height:88vh;overflow:auto;background:#fff;border-radius:16px;padding:24px 26px;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:pop .25s ease}
+  .modal h3{font-size:17px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+  .modal .x{cursor:pointer;color:#9ca3af;font-size:20px;line-height:1;font-weight:400}
+  .modal .x:hover{color:#ef4444}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .form-grid .full{grid-column:1/-1}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+  #toast-root{position:fixed;top:18px;right:18px;z-index:200;display:flex;flex-direction:column;gap:10px}
+  .toast{background:#111827;color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+    animation:slideIn .3s ease;max-width:340px}
+  .toast.ok{background:#065f46}.toast.err{background:#991b1b}
+  @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+  .notice-card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;background:#fff}
+  .notice-card h4{font-size:15px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .notice-card .meta{color:var(--muted);font-size:12px;margin-bottom:8px}
+  .notice-card p{color:#374151;font-size:13.5px;line-height:1.8;white-space:pre-wrap}
+  .dorm-hero{display:flex;gap:16px;flex-wrap:wrap}
+  .dorm-hero .card{flex:1;min-width:300px}
+  .kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed #eef1f7;font-size:13.5px}
+  .kv:last-child{border:none}
+  .kv b{color:#111827}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script>
+/* ================= 数据层 ================= */
+const STORE_KEY = 'dorm_sys_v1';
+function seedData(){
+  return {
+    users:[
+      {username:'admin', password:'123456', role:'admin', name:'王老师'},
+      {username:'s001', password:'123456', role:'student', name:'张伟'},
+      {username:'s002', password:'123456', role:'student', name:'李强'},
+      {username:'s007', password:'123456', role:'student', name:'李娜'},
+      {username:'s008', password:'123456', role:'student', name:'孙丽'}
+    ],
+    dorms:[
+      {id:'d1', building:'1栋', room:'101', floor:1, capacity:4, type:'男生宿舍', facilities:['空调','独立卫浴','阳台','WiFi','热水器'], desc:'标准四人间，朝南采光好'},
+      {id:'d2', building:'1栋', room:'102', floor:1, capacity:4, type:'男生宿舍', facilities:['空调','独立卫浴','WiFi','热水器'], desc:'标准四人间'},
+      {id:'d3', building:'1栋', room:'201', floor:2, capacity:4, type:'男生宿舍', facilities:['空调','公共卫浴','阳台','WiFi'], desc:'经济四人间'},
+      {id:'d4', building:'2栋', room:'101', floor:1, capacity:6, type:'男生宿舍', facilities:['空调','独立卫浴','阳台','WiFi','热水器','洗衣机'], desc:'六人间宽敞户型'},
+      {id:'d5', building:'2栋', room:'102', floor:1, capacity:6, type:'男生宿舍', facilities:['空调','独立卫浴','WiFi','洗衣机'], desc:'六人间'},
+      {id:'d6', building:'3栋', room:'101', floor:1, capacity:4, type:'女生宿舍', facilities:['空调','独立卫浴','阳台','WiFi','热水器'], desc:'标准四人间，带独立阳台'},
+      {id:'d7', building:'3栋', room:'102', floor:1, capacity:4, type:'女生宿舍', facilities:['空调','独立卫浴','WiFi','热水器'], desc:'标准四人间'},
+      {id:'d8', building:'3栋', room:'201', floor:2, capacity:4, type:'女生宿舍', facilities:['空调','公共卫浴','WiFi'], desc:'经济四人间'}
+    ],
+    students:[
+      {id:'st01', studentId:'s001', name:'张伟', gender:'男', major:'计算机科学与技术', phone:'13800000001', dormId:'d1', bed:1, checkin:'2025-09-01'},
+      {id:'st02', studentId:'s002', name:'李强', gender:'男', major:'软件工程', phone:'13800000002', dormId:'d1', bed:2, checkin:'2025-09-01'},
+      {id:'st03', studentId:'s003', name:'王浩', gender:'男', major:'人工智能', phone:'13800000003', dormId:'d1', bed:3, checkin:'2025-09-01'},
+      {id:'st04', studentId:'s004', name:'刘洋', gender:'男', major:'机械设计制造', phone:'13800000004', dormId:'d2', bed:1, checkin:'2025-09-01'},
+      {id:'st05', studentId:'s005', name:'陈乐', gender:'男', major:'数据科学', phone:'13800000005', dormId:'d2', bed:2, checkin:'2025-09-02'},
+      {id:'st06', studentId:'s006', name:'赵磊', gender:'男', major:'物联网工程', phone:'13800000006', dormId:'d4', bed:1, checkin:'2025-09-01'},
+      {id:'st07', studentId:'s007', name:'李娜', gender:'女', major:'软件工程', phone:'13900000001', dormId:'d6', bed:1, checkin:'2025-09-01'},
+      {id:'st08', studentId:'s008', name:'孙丽', gender:'女', major:'会计学', phone:'13900000002', dormId:'d6', bed:2, checkin:'2025-09-01'},
+      {id:'st09', studentId:'s009', name:'周敏', gender:'女', major:'汉语言文学', phone:'13900000003', dormId:'d7', bed:1, checkin:'2025-09-03'},
+      {id:'st10', studentId:'s010', name:'吴倩', gender:'女', major:'英语', phone:'13900000004', dormId:'d7', bed:2, checkin:'2025-09-03'}
+    ],
+    leaves:[
+      {id:'l1', studentId:'s001', name:'张伟', dormId:'d1', start:'2026-10-01', end:'2026-10-03', reason:'家中有急事，需回家探望父母', status:'approved', time:'2026-09-29 10:20', reviewer:'王老师', note:'同意，往返注意安全'},
+      {id:'l2', studentId:'s007', name:'李娜', dormId:'d6', start:'2026-10-08', end:'2026-10-10', reason:'需前往市立医院复诊', status:'pending', time:'2026-10-05 09:12'},
+      {id:'l3', studentId:'s003', name:'王浩', dormId:'d1', start:'2026-10-12', end:'2026-10-13', reason:'参加省级程序设计竞赛', status:'pending', time:'2026-10-05 15:47'},
+      {id:'l4', studentId:'s004', name:'刘洋', dormId:'d2', start:'2026-09-20', end:'2026-09-21', reason:'朋友婚礼，需离校一天', status:'rejected', time:'2026-09-18 20:05', reviewer:'王老师', note:'临近考试周，不予批准'}
+    ],
+    repairs:[
+      {id:'r1', studentId:'s008', name:'孙丽', dormId:'d6', type:'空调', desc:'空调无法制冷，白天室温过高，影响休息', status:'pending', time:'2026-10-05 19:30'},
+      {id:'r2', studentId:'s002', name:'李强', dormId:'d1', type:'水管', desc:'水龙头漏水，越滴越多', status:'processing', time:'2026-10-04 08:15', handler:'后勤维修组·王师傅', note:'已上门查看，等待更换配件'},
+      {id:'r3', studentId:'s009', name:'周敏', dormId:'d7', type:'电路', desc:'房间灯管闪烁，疑似接触不良', status:'done', time:'2026-09-28 21:02', handler:'后勤维修组·刘师傅', note:'已更换灯管，运行正常'},
+      {id:'r4', studentId:'s001', name:'张伟', dormId:'d1', type:'门窗', desc:'窗户关不严，夜间有异响', status:'processing', time:'2026-10-03 17:40', handler:'后勤维修组·刘师傅', note:'已登记，预计本周内上门'}
+    ],
+    notices:[
+      {id:'n1', title:'关于2026年国庆节放假安排的通知', content:'各位同学：\n国庆节放假时间为10月1日至10月7日，共7天。离校学生请在宿管处登记去向，返校后及时销假。\n假期期间宿舍楼实行封闭管理，请注意用电与财产安全。\n祝大家假期愉快！', author:'王老师', time:'2026-09-28 10:00', pinned:true},
+      {id:'n2', title:'宿舍安全用电专项检查通知', content:'学校将于本周四下午对各宿舍开展安全用电专项检查，重点排查大功率电器、私拉乱接电线等隐患，请同学们提前自查整改。', author:'王老师', time:'2026-09-25 14:30', pinned:false},
+      {id:'n3', title:'热水供应时间调整公告', content:'自10月10日起，宿舍楼热水供应时间调整为每天 6:30-8:30 与 17:30-23:00，请大家合理安排用水时间。', author:'后勤管理处', time:'2026-09-20 09:00', pinned:false}
+    ]
+  };
+}
+let S;
+try{ S = JSON.parse(localStorage.getItem(STORE_KEY)) || seedData(); }catch(e){ S = seedData(); }
+if(!S || !S.users) S = seedData();
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+
+/* ================= 工具 ================= */
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const dormOf = id => S.dorms.find(d=>d.id===id);
+const dormLabel = id => { const d=dormOf(id); return d ? `${d.building}-${d.room}` : '未分配'; };
+const occOf = d => S.students.filter(s=>s.dormId===d.id).length;
+const nowStr = () => { const t=new Date(), p=n=>String(n).padStart(2,'0');
+  return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}`; };
+const LEAF_MAP = {pending:['待审批','bg-amber'], approved:['已通过','bg-green'], rejected:['已驳回','bg-red']};
+const REP_MAP = {pending:['待处理','bg-amber'], processing:['处理中','bg-blue'], done:['已完成','bg-green']};
+function toast(msg, type){ const t=document.createElement('div'); t.className='toast '+(type||''); t.textContent=msg;
+  document.getElementById('toast-root').appendChild(t); setTimeout(()=>{t.style.opacity='0';t.style.transition='.4s';setTimeout(()=>t.remove(),400)},2600); }
+function openModal(html){ document.getElementById('modal-root').innerHTML = `<div class="modal-mask" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`; }
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+
+/* ================= 路由 ================= */
+let state = { user:null };
+try{ state.user = JSON.parse(sessionStorage.getItem('dorm_user')); }catch(e){}
+const MENUS = {
+  admin:[['dashboard','📊','数据看板'],['dorms','🏠','宿舍管理'],['students','👥','学生管理'],['leaves','📝','请假审批'],['repairs','🔧','报修处理'],['notices','📢','公告管理']],
+  student:[['dorm','🏠','我的宿舍'],['leaves','📝','请假申请'],['repairs','🔧','报修申请'],['notices','📢','校园公告']]
+};
+const PAGE_TITLES = {dashboard:'数据看板',dorms:'宿舍详情管理',students:'学生信息维护',leaves:'请假与审批',repairs:'报修与处理',notices:'公告管理',dorm:'我的宿舍'};
+
+function parseRoute(){ const raw=location.hash.replace(/^#\/?/,''); return raw? raw.split('/').filter(Boolean) : []; }
+function go(hash){ location.hash = hash; }
+
+window.addEventListener('hashchange', render);
+
+function render(){
+  let r = parseRoute();
+  const app = document.getElementById('app');
+  /* 演示模式（供视频录制 / 快速预览） */
+  if(r[0]==='demo'){
+    if(r[1]==='title'){ app.innerHTML = brandPage('title'); return; }
+    if(r[1]==='outro'){ app.innerHTML = brandPage('outro'); return; }
+    if(r[1]==='login'){ state.user=null; app.innerHTML = loginPage(); return; }
+    if(r[1]==='admin'){ state.user = {username:'admin',role:'admin',name:'王老师'}; r=['admin', r[2]||'dashboard']; }
+    else if(r[1]==='student'){ state.user = {username:'s001',role:'student',name:'张伟'}; r=['student', r[2]||'dorm']; }
+  }
+  /* 登录守卫 + 角色权限 */
+  if(r[0]==='admin'||r[0]==='student'){
+    if(!state.user || state.user.role!==r[0]){ state.user=null; app.innerHTML = loginPage(); return; }
+    app.innerHTML = shell(r[0], r[1]);
+    window.scrollTo(0,0);
+    return;
+  }
+  state.user=null; app.innerHTML = loginPage();
+}
+
+/* ================= 页面：品牌页 ================= */
+function brandPage(kind){
+  if(kind==='title'){
+    return `<div class="brand-wrap">
+      <div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div>
+      <div class="logo-big">🏠</div>
+      <h1>智慧宿舍管理系统</h1>
+      <div class="en">Smart Dormitory Management System</div>
+      <div class="chips">
+        <span class="chip">🏠 宿舍详情管理</span><span class="chip">👥 学生信息维护</span>
+        <span class="chip">📝 请假与审批</span><span class="chip">🔧 报修与处理</span>
+        <span class="chip">📢 公告发布</span>
+      </div>
+      <div class="brand-foot">学 生 端 · 管 理 员 端 &nbsp;|&nbsp; 角色权限分离 &nbsp;|&nbsp; 功能演示</div>
+    </div>`;
+  }
+  return `<div class="brand-wrap">
+    <div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div>
+    <div class="logo-big">🚀</div>
+    <h2>让宿舍管理更简单 更高效</h2>
+    <div class="en">Simpler · Smarter · More Efficient</div>
+    <div class="chips">
+      <span class="chip">数据看板</span><span class="chip">一键报修</span><span class="chip">在线审批</span><span class="chip">公告直达</span>
+    </div>
+    <div class="brand-foot">感 谢 观 看 &nbsp;·&nbsp; 智慧宿舍管理系统</div>
+  </div>`;
+}
+
+/* ================= 页面：登录 ================= */
+function loginPage(){
+  return `<div class="auth-wrap">
+    <div class="bubble b1"></div><div class="bubble b2"></div>
+    <div class="auth-card">
+      <div class="auth-logo"><div class="ic">🏠</div><h1>智慧宿舍管理系统</h1></div>
+      <div class="auth-sub">学生端 / 管理员端 · 按角色区分权限</div>
+      <form onsubmit="doLogin(event)">
+        <div class="field"><label>账号</label><input id="lg-user" placeholder="请输入账号（管理员或学号）" value=""></div>
+        <div class="field"><label>密码</label><input id="lg-pass" type="password" placeholder="请输入密码" value="123456"></div>
+        <button class="btn btn-primary btn-block" type="submit">登 录</button>
+      </form>
+      <div class="demo-quick">
+        <button class="btn" onclick="quickLogin('admin')">🛡️ 管理员演示<small>admin / 123456</small></button>
+        <button class="btn" onclick="quickLogin('student')">🎓 学生演示<small>s001 / 123456</small></button>
+      </div>
+      <div class="login-tip">演示环境：学生账号为学号，默认密码 123456 · <span class="link" style="cursor:pointer" onclick="resetData()">重置演示数据</span></div>
+    </div>
+  </div>`;
+}
+function doLogin(e){ e.preventDefault();
+  const u=document.getElementById('lg-user').value.trim(), p=document.getElementById('lg-pass').value;
+  const f=S.users.find(x=>x.username===u && x.password===p);
+  if(!f){ toast('账号或密码错误','err'); return; }
+  state.user={username:f.username, role:f.role, name:f.name};
+  sessionStorage.setItem('dorm_user', JSON.stringify(state.user));
+  go('#/'+f.role+'/'+(f.role==='admin'?'dashboard':'dorm'));
+}
+function quickLogin(role){
+  const f=S.users.find(x=>x.role===role && (role==='admin'?x.username==='admin':x.username==='s001'));
+  state.user={username:f.username, role:f.role, name:f.name};
+  sessionStorage.setItem('dorm_user', JSON.stringify(state.user));
+  go('#/'+f.role+'/'+(f.role==='admin'?'dashboard':'dorm')); render();
+}
+function logout(){ state.user=null; sessionStorage.removeItem('dorm_user'); go('#/login'); render(); }
+function resetData(){ S=seedData(); save(); toast('演示数据已重置','ok'); render(); }
+
+/* ================= 布局外壳 ================= */
+function shell(role, view){
+  const menus = MENUS[role], title = PAGE_TITLES[view]||'';
+  const u = state.user;
+  const menuHtml = menus.map(([k,ic,label]) =>
+    `<div class="menu-item ${view===k?'active':''}" onclick="go('#/${role}/${k}')"><span class="mi">${ic}</span>${label}</div>`).join('');
+  const body = role==='admin' ? adminView(view) : studentView(view);
+  return `<div class="shell">
+    <div class="sidebar">
+      <div class="side-logo"><div class="ic">🏠</div><b>智慧宿舍管理</b></div>
+      <div class="side-menu">
+        <div class="menu-cap">${role==='admin'?'管 理 员 端':'学 生 端'}</div>
+        ${menuHtml}
+      </div>
+      <div class="side-foot">
+        <div>当前身份：${role==='admin'?'系统管理员':'学生'}</div>
+        <div style="margin-top:6px"><span class="link" onclick="logout()">退出登录</span> · <span class="link" onclick="resetData()">重置数据</span></div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <h2>${title}</h2>
+        <div class="user-chip">
+          <div class="avatar">${esc(u.name[0]||'U')}</div>
+          <div class="info"><b>${esc(u.name)}</b><span>${role==='admin'?'<span class="role-tag role-admin">管理员</span>':'<span class="role-tag role-student">学生</span>'} · ${esc(u.username)}</span></div>
+        </div>
+      </div>
+      <div class="content">${body}</div>
+    </div>
+  </div>`;
+}
+
+/* ================= 管理员端视图 ================= */
+function adminView(view){
+  switch(view){
+    case 'dashboard': return vDashboard();
+    case 'dorms': return vDorms();
+    case 'students': return vStudents();
+    case 'leaves': return vLeaves();
+    case 'repairs': return vRepairs();
+    case 'notices': return vNotices();
+    default: return vDashboard();
+  }
+}
+
+function vDashboard(){
+  const totalBeds = S.dorms.reduce((a,d)=>a+d.capacity,0);
+  const occ = S.students.filter(s=>s.dormId).length;
+  const rate = totalBeds? Math.round(occ/totalBeds*100):0;
+  const pendLeaves = S.leaves.filter(l=>l.status==='pending').length;
+  const pendRepairs = S.repairs.filter(r=>r.status!=='done').length;
+  /* 楼栋统计 */
+  const bMap = {};
+  S.dorms.forEach(d=>{ bMap[d.building]=bMap[d.building]||{beds:0,occ:0}; bMap[d.building].beds+=d.capacity; bMap[d.building].occ+=occOf(d); });
+  const bars = Object.entries(bMap).map(([b,st])=>{
+    const pct = st.beds? Math.round(st.occ/st.beds*100):0;
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><b>${b}</b><span class="sub">${st.occ}/${st.beds} 人 · ${pct}%</span></div>
+      <div class="progress"><i style="width:${pct}%"></i></div></div>`;
+  }).join('');
+  const leafRows = [...S.leaves].sort((a,b)=>b.time.localeCompare(a.time)).slice(0,4).map(l=>
+    `<div class="list-item"><div><b>${esc(l.name)}</b> <span class="sub">${dormLabel(l.dormId)}</span><div class="sub">${esc(l.start)} ~ ${esc(l.end)} · ${esc(l.reason).slice(0,18)}…</div></div><span class="badge ${LEAF_MAP[l.status][1]}">${LEAF_MAP[l.status][0]}</span></div>`).join('');
+  const repRows = [...S.repairs].sort((a,b)=>b.time.localeCompare(a.time)).slice(0,4).map(r=>
+    `<div class="list-item"><div><b>${esc(r.name)}</b> <span class="sub">${dormLabel(r.dormId)}</span><div class="sub">[${esc(r.type)}] ${esc(r.desc).slice(0,16)}…</div></div><span class="badge ${REP_MAP[r.status][1]}">${REP_MAP[r.status][0]}</span></div>`).join('');
+  return `
+    <div class="stats">
+      <div class="stat"><div class="ic" style="background:#e0f2fe">👥</div><div><b>${S.students.length}</b><span>住宿学生</span></div></div>
+      <div class="stat"><div class="ic" style="background:#ede9fe">🏠</div><div><b>${S.dorms.length}</b><span>宿舍房间</span></div></div>
+      <div class="stat"><div class="ic" style="background:#d1fae5">🛏️</div><div><b>${rate}%</b><span>总入住率</span></div></div>
+      <div class="stat"><div class="ic" style="background:#fef3c7">📝</div><div><b>${pendLeaves}</b><span>待审批请假</span></div></div>
+      <div class="stat"><div class="ic" style="background:#fee2e2">🔧</div><div><b>${pendRepairs}</b><span>待处理报修</span></div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><h3 style="margin-bottom:14px">📈 楼栋入住率</h3>${bars}</div>
+      <div class="card"><h3 style="margin-bottom:6px">📝 最新请假申请</h3>${leafRows||'<div class="empty">暂无数据</div>'}</div>
+    </div>
+    <div class="card" style="margin-top:16px"><h3 style="margin-bottom:6px">🔧 最新报修工单</h3>${repRows||'<div class="empty">暂无数据</div>'}</div>`;
+}
+
+/* ---- 宿舍管理 ---- */
+let fd = {kw:''};
+function vDorms(){
+  return `<div class="page-head">
+      <div><h3>宿舍详情管理</h3><div class="desc">维护宿舍楼栋、房间、容量、设施等信息，入住状态自动统计</div></div>
+      <div class="toolbar">
+        <input class="search-input" placeholder="搜索楼栋 / 房间号…" value="${esc(fd.kw)}" oninput="fd.kw=this.value;renderDormTable()">
+        <button class="btn btn-primary" onclick="openDormModal()">＋ 新增宿舍</button>
+      </div>
+    </div>
+    <div class="card" style="padding:6px 14px 14px">
+      <table><thead><tr>
+        <th>楼栋</th><th>房间号</th><th>楼层</th><th>类型</th><th>容量</th><th style="width:180px">入住情况</th><th>设施</th><th>状态</th><th>操作</th>
+      </tr></thead><tbody id="dorm-tbody">${dormRows()}</tbody></table>
+    </div>`;
+}
+function dormRows(){
+  const kw = fd.kw.trim();
+  const list = S.dorms.filter(d=>!kw || d.building.includes(kw) || d.room.includes(kw));
+  if(!list.length) return '<tr><td colspan="9" class="empty">没有匹配的宿舍</td></tr>';
+  return list.map(d=>{
+    const occ=occOf(d), pct=Math.round(occ/d.capacity*100);
+    const status = occ>=d.capacity? '<span class="badge bg-red">满员</span>' : occ>0? '<span class="badge bg-green">入住中</span>' : '<span class="badge bg-gray">空闲</span>';
+    return `<tr>
+      <td><b>${esc(d.building)}</b></td><td>${esc(d.room)}</td><td>${d.floor}层</td>
+      <td><span class="badge ${d.type==='女生宿舍'?'bg-violet':'bg-blue'}">${esc(d.type)}</span></td>
+      <td>${d.capacity} 人</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="progress" style="flex:1"><i style="width:${pct}%"></i></div><span class="sub">${occ}/${d.capacity}</span></div></td>
+      <td>${d.facilities.map(f=>`<span class="facility-chip">${esc(f)}</span>`).join('')}</td>
+      <td>${status}</td>
+      <td class="ops"><button class="btn btn-xs" onclick="openDormModal('${d.id}')">编辑</button><button class="btn btn-xs btn-danger" onclick="delDorm('${d.id}')">删除</button></td>
+    </tr>`;
+  }).join('');
+}
+function renderDormTable(){ const t=document.getElementById('dorm-tbody'); if(t) t.innerHTML=dormRows(); }
+function openDormModal(id){
+  const d = id? dormOf(id) : {building:'',room:'',floor:1,capacity:4,type:'男生宿舍',facilities:[],desc:''};
+  const facs = ['空调','独立卫浴','公共卫浴','阳台','WiFi','热水器','洗衣机'];
+  openModal(`<h3>${id?'编辑宿舍':'新增宿舍'}<span class="x" onclick="closeModal()">×</span></h3>
+    <div class="form-grid">
+      <div class="field"><label>楼栋</label><input id="df-building" value="${esc(d.building)}" placeholder="如：1栋"></div>
+      <div class="field"><label>房间号</label><input id="df-room" value="${esc(d.room)}" placeholder="如：101"></div>
+      <div class="field"><label>楼层</label><input id="df-floor" type="number" min="1" value="${d.floor}"></div>
+      <div class="field"><label>容量（人）</label><input id="df-cap" type="number" min="1" max="12" value="${d.capacity}"></div>
+      <div class="field"><label>宿舍类型</label><select id="df-type"><option ${d.type==='男生宿舍'?'selected':''}>男生宿舍</option><option ${d.type==='女生宿舍'?'selected':''}>女生宿舍</option></select></div>
+      <div class="field full"><label>设施配置</label><div id="df-facs">${facs.map(f=>`<label style="margin-right:14px;font-weight:400"><input type="checkbox" value="${f}" ${d.facilities.includes(f)?'checked':''} style="width:auto;margin-right:4px">${f}</label>`).join('')}</div></div>
+      <div class="field full"><label>备注说明</label><textarea id="df-desc" placeholder="选填">${esc(d.desc)}</textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveDorm('${id||''}')">保存</button></div>`);
+}
+function saveDorm(id){
+  const building=document.getElementById('df-building').value.trim(), room=document.getElementById('df-room').value.trim();
+  if(!building||!room){ toast('请填写楼栋和房间号','err'); return; }
+  const cap=parseInt(document.getElementById('df-cap').value)||1;
+  const facilities=[...document.querySelectorAll('#df-facs input:checked')].map(i=>i.value);
+  const data={building, room, floor:parseInt(document.getElementById('df-floor').value)||1, capacity:cap,
+    type:document.getElementById('df-type').value, facilities, desc:document.getElementById('df-desc').value.trim()};
+  if(id){ Object.assign(dormOf(id), data); toast('宿舍信息已更新','ok'); }
+  else { S.dorms.push({id:uid('d'), ...data}); toast('新增宿舍成功','ok'); }
+  save(); closeModal(); render(); renderDormTable();
+}
+function delDorm(id){
+  const occ=occOf(dormOf(id));
+  if(occ>0){ toast('该宿舍仍有学生入住，无法删除','err'); return; }
+  openModal(`<h3>删除确认</h3><p style="color:#4b5563">确定删除宿舍 <b>${dormLabel(id)}</b> 吗？此操作不可恢复。</p>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-danger" onclick="confirmDelDorm('${id}')">确认删除</button></div>`);
+}
+function confirmDelDorm(id){ S.dorms=S.dorms.filter(d=>d.id!==id); save(); closeModal(); toast('已删除','ok'); render(); }
+
+/* ---- 学生管理 ---- */
+let fs = {kw:''};
+function vStudents(){
+  return `<div class="page-head">
+      <div><h3>学生信息维护</h3><div class="desc">录入与维护学生资料，分配宿舍床位，支持快速检索</div></div>
+      <div class="toolbar">
+        <input class="search-input" placeholder="搜索姓名 / 学号 / 专业…" value="${esc(fs.kw)}" oninput="fs.kw=this.value;renderStuTable()">
+        <button class="btn btn-primary" onclick="openStuModal()">＋ 添加学生</button>
+      </div>
+    </div>
+    <div class="card" style="padding:6px 14px 14px">
+      <table><thead><tr>
+        <th>学号</th><th>姓名</th><th>性别</th><th>专业</th><th>联系电话</th><th>宿舍</th><th>床位</th><th>入住日期</th><th>操作</th>
+      </tr></thead><tbody id="stu-tbody">${stuRows()}</tbody></table>
+    </div>`;
+}
+function stuRows(){
+  const kw=fs.kw.trim();
+  const list=S.students.filter(s=>!kw||s.name.includes(kw)||s.studentId.toLowerCase().includes(kw.toLowerCase())||s.major.includes(kw));
+  if(!list.length) return '<tr><td colspan="9" class="empty">没有匹配的学生</td></tr>';
+  return list.map(s=>`<tr>
+    <td>${esc(s.studentId)}</td><td><b>${esc(s.name)}</b></td>
+    <td>${esc(s.gender)}</td><td>${esc(s.major)}</td><td>${esc(s.phone)}</td>
+    <td>${s.dormId?`<span class="badge bg-blue">${dormLabel(s.dormId)}</span>`:'<span class="badge bg-gray">未分配</span>'}</td>
+    <td>${s.bed?s.bed+'床':'-'}</td><td class="sub">${esc(s.checkin||'-')}</td>
+    <td class="ops"><button class="btn btn-xs" onclick="openStuModal('${s.id}')">编辑</button><button class="btn btn-xs btn-danger" onclick="delStu('${s.id}')">删除</button></td>
+  </tr>`).join('');
+}
+function renderStuTable(){ const t=document.getElementById('stu-tbody'); if(t) t.innerHTML=stuRows(); }
+function openStuModal(id){
+  const s = id? S.students.find(x=>x.id===id) : {studentId:'',name:'',gender:'男',major:'',phone:'',dormId:'',bed:'',checkin:''};
+  openModal(`<h3>${id?'编辑学生信息':'添加学生'}<span class="x" onclick="closeModal()">×</span></h3>
+    <div class="form-grid">
+      <div class="field"><label>学号（登录账号）</label><input id="sf-sid" value="${esc(s.studentId)}" placeholder="如 s011"></div>
+      <div class="field"><label>姓名</label><input id="sf-name" value="${esc(s.name)}"></div>
+      <div class="field"><label>性别</label><select id="sf-gender"><option ${s.gender==='男'?'selected':''}>男</option><option ${s.gender==='女'?'selected':''}>女</option></select></div>
+      <div class="field"><label>专业</label><input id="sf-major" value="${esc(s.major)}"></div>
+      <div class="field"><label>联系电话</label><input id="sf-phone" value="${esc(s.phone)}"></div>
+      <div class="field"><label>分配宿舍</label><select id="sf-dorm"><option value="">未分配</option>
+        ${S.dorms.map(d=>{const occ=occOf(d);return `<option value="${d.id}" ${s.dormId===d.id?'selected':''} ${(!s.dormId&&occ>=d.capacity)?'disabled':''}>${d.building}-${d.room}（${occ}/${d.capacity}）</option>`;}).join('')}
+      </select></div>
+      <div class="field"><label>床位号</label><input id="sf-bed" type="number" min="1" max="12" value="${s.bed||''}"></div>
+      <div class="field"><label>入住日期</label><input id="sf-checkin" type="date" value="${esc(s.checkin)}"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveStu('${id||''}')">保存</button></div>`);
+}
+function saveStu(id){
+  const studentId=document.getElementById('sf-sid').value.trim(), name=document.getElementById('sf-name').value.trim();
+  if(!studentId||!name){ toast('学号和姓名必填','err'); return; }
+  const dup=S.students.find(x=>x.studentId===studentId && x.id!==id);
+  if(dup){ toast('学号已存在','err'); return; }
+  const data={studentId,name,gender:document.getElementById('sf-gender').value,major:document.getElementById('sf-major').value.trim(),
+    phone:document.getElementById('sf-phone').value.trim(),dormId:document.getElementById('sf-dorm').value||null,
+    bed:parseInt(document.getElementById('sf-bed').value)||null,checkin:document.getElementById('sf-checkin').value};
+  if(id){ Object.assign(S.students.find(x=>x.id===id), data); toast('学生信息已更新','ok'); }
+  else { S.students.push({id:uid('st'),...data}); S.users.push({username:studentId,password:'123456',role:'student',name}); toast('添加成功，默认密码 123456','ok'); }
+  save(); closeModal(); render(); renderStuTable();
+}
+function delStu(id){
+  const s=S.students.find(x=>x.id===id);
+  openModal(`<h3>删除确认</h3><p>确定删除学生 <b>${esc(s.name)}（${esc(s.studentId)}）</b> 吗？</p>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-danger" onclick="confirmDelStu('${id}')">确认删除</button></div>`);
+}
+function confirmDelStu(id){ S.students=S.students.filter(x=>x.id!==id); save(); closeModal(); toast('已删除','ok'); render(); }
+
+/* ---- 请假审批 ---- */
+let fl = 'all';
+function vLeaves(){
+  const list=[...S.leaves].sort((a,b)=>b.time.localeCompare(a.time)).filter(l=>fl==='all'||l.status===fl);
+  return `<div class="page-head">
+      <div><h3>请假与审批</h3><div class="desc">审批学生请假申请，流程全程留痕</div></div>
+      <div class="toolbar">
+        <select class="search-input" onchange="fl=this.value;render()">
+          <option value="all" ${fl==='all'?'selected':''}>全部状态</option>
+          <option value="pending" ${fl==='pending'?'selected':''}>待审批</option>
+          <option value="approved" ${fl==='approved'?'selected':''}>已通过</option>
+          <option value="rejected" ${fl==='rejected'?'selected':''}>已驳回</option>
+        </select>
+      </div></div>
+    <div class="card" style="padding:6px 14px 14px">
+      <table><thead><tr><th>学生</th><th>宿舍</th><th>请假时间</th><th>事由</th><th>申请时间</th><th>状态</th><th>审批结果</th><th>操作</th></tr></thead>
+      <tbody>${list.length? list.map(l=>`<tr>
+        <td><b>${esc(l.name)}</b><div class="sub">${esc(l.studentId)}</div></td>
+        <td>${dormLabel(l.dormId)}</td>
+        <td>${esc(l.start)}<div class="sub">至 ${esc(l.end)}</div></td>
+        <td style="max-width:220px">${esc(l.reason)}</td>
+        <td class="sub">${esc(l.time)}</td>
+        <td><span class="badge ${LEAF_MAP[l.status][1]}">${LEAF_MAP[l.status][0]}</span></td>
+        <td style="max-width:180px" class="sub">${l.status==='pending'?'—':esc(l.reviewer||'')+'：'+esc(l.note||'')}</td>
+        <td class="ops">${l.status==='pending'?`<button class="btn btn-xs btn-success" onclick="reviewLeave('${l.id}',true)">通过</button><button class="btn btn-xs btn-danger" onclick="reviewLeave('${l.id}',false)">驳回</button>`:'<span class="sub">已处理</span>'}</td>
+      </tr>`).join('') : '<tr><td colspan="8" class="empty">暂无记录</td></tr>'}</tbody></table>
+    </div>`;
+}
+function reviewLeave(id, pass){
+  const l=S.leaves.find(x=>x.id===id);
+  openModal(`<h3>请假审批 · ${esc(l.name)}</h3>
+    <div class="card" style="box-shadow:none;background:#f8fafc;margin-bottom:14px">
+      <div class="kv"><span>宿舍</span><b>${dormLabel(l.dormId)}</b></div>
+      <div class="kv"><span>请假时间</span><b>${esc(l.start)} ~ ${esc(l.end)}</b></div>
+      <div class="kv"><span>事由</span><b style="max-width:320px;text-align:right">${esc(l.reason)}</b></div>
+    </div>
+    <div class="field"><label>审批意见</label><textarea id="rv-note" placeholder="${pass?'请填写审批意见（选填）':'请填写驳回原因（必填）'}"></textarea></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn ${pass?'btn-primary':'btn-danger'}" onclick="confirmReview('${id}',${pass})">${pass?'✓ 通过申请':'✕ 驳回申请'}</button></div>`);
+}
+function confirmReview(id, pass){
+  const note=document.getElementById('rv-note').value.trim();
+  if(!pass && !note){ toast('驳回时必须填写原因','err'); return; }
+  const l=S.leaves.find(x=>x.id===id);
+  l.status=pass?'approved':'rejected'; l.note=note||(pass?'同意':''); l.reviewer=state.user.name;
+  save(); closeModal(); toast(pass?'已通过该请假申请':'已驳回该申请','ok'); render();
+}
+
+/* ---- 报修处理 ---- */
+let fr='all';
+function vRepairs(){
+  const list=[...S.repairs].sort((a,b)=>b.time.localeCompare(a.time)).filter(r=>fr==='all'||r.status===fr);
+  return `<div class="page-head">
+      <div><h3>报修与处理</h3><div class="desc">受理学生报修工单，派单维修，完成后归档</div></div>
+      <div class="toolbar">
+        <select class="search-input" onchange="fr=this.value;render()">
+          <option value="all" ${fr==='all'?'selected':''}>全部状态</option>
+          <option value="pending" ${fr==='pending'?'selected':''}>待处理</option>
+          <option value="processing" ${fr==='processing'?'selected':''}>处理中</option>
+          <option value="done" ${fr==='done'?'selected':''}>已完成</option>
+        </select>
+      </div></div>
+    <div class="card" style="padding:6px 14px 14px">
+      <table><thead><tr><th>报修学生</th><th>位置</th><th>类型</th><th>问题描述</th><th>报修时间</th><th>状态</th><th>维修进度</th><th>操作</th></tr></thead>
+      <tbody>${list.length? list.map(r=>`<tr>
+        <td><b>${esc(r.name)}</b><div class="sub">${esc(r.studentId)}</div></td>
+        <td><span class="badge bg-blue">${dormLabel(r.dormId)}</span></td>
+        <td>${esc(r.type)}</td>
+        <td style="max-width:240px">${esc(r.desc)}</td>
+        <td class="sub">${esc(r.time)}</td>
+        <td><span class="badge ${REP_MAP[r.status][1]}">${REP_MAP[r.status][0]}</span></td>
+        <td style="max-width:200px" class="sub">${r.handler?esc(r.handler)+'：'+esc(r.note||''):'—'}</td>
+        <td class="ops">
+          ${r.status==='pending'?`<button class="btn btn-xs btn-primary" onclick="openDispatchModal('${r.id}')">接单派工</button>`:''}
+          ${r.status==='processing'?`<button class="btn btn-xs btn-success" onclick="openFinishModal('${r.id}')">完成处理</button>`:''}
+          ${r.status==='done'?'<span class="sub">已归档</span>':''}
+        </td></tr>`).join('') : '<tr><td colspan="8" class="empty">暂无工单</td></tr>'}</tbody></table>
+    </div>`;
+}
+function openDispatchModal(id){
+  const r=S.repairs.find(x=>x.id===id);
+  openModal(`<h3>接单派工 · ${dormLabel(r.dormId)} ${esc(r.type)}</h3>
+    <p class="sub" style="margin-bottom:12px">问题描述：${esc(r.desc)}</p>
+    <div class="field"><label>指派维修人员 / 班组</label><input id="dp-handler" placeholder="如：后勤维修组·王师傅" value="后勤维修组·王师傅"></div>
+    <div class="field"><label>备注</label><input id="dp-note" placeholder="选填"></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="confirmDispatch('${id}')">确认派工</button></div>`);
+}
+function confirmDispatch(id){
+  const handler=document.getElementById('dp-handler').value.trim();
+  if(!handler){ toast('请填写维修人员','err'); return; }
+  const r=S.repairs.find(x=>x.id===id);
+  r.status='processing'; r.handler=handler; r.note=document.getElementById('dp-note').value.trim();
+  save(); closeModal(); toast('已派工，状态更新为处理中','ok'); render();
+}
+function openFinishModal(id){
+  const r=S.repairs.find(x=>x.id===id);
+  openModal(`<h3>完成处理 · ${dormLabel(r.dormId)} ${esc(r.type)}</h3>
+    <div class="field"><label>处理结果说明</label><textarea id="fn-note" placeholder="填写维修结果，将同步给学生"></textarea></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="confirmFinish('${id}')">确认完成</button></div>`);
+}
+function confirmFinish(id){
+  const r=S.repairs.find(x=>x.id===id);
+  r.status='done'; r.note=document.getElementById('fn-note').value.trim()||'已修复';
+  save(); closeModal(); toast('工单已完成归档','ok'); render();
+}
+
+/* ---- 公告管理 ---- */
+function vNotices(){
+  const list=[...S.notices].sort((a,b)=>(b.pinned-a.pinned)||b.time.localeCompare(a.time));
+  return `<div class="page-head">
+      <div><h3>公告管理</h3><div class="desc">发布校园与宿舍公告，学生端实时可见</div></div>
+      <button class="btn btn-primary" onclick="openNoticeModal()">＋ 发布公告</button>
+    </div>
+    ${list.length? list.map(n=>`<div class="notice-card">
+      <h4>${n.pinned?'<span class="badge bg-red">置顶</span>':''}${esc(n.title)}</h4>
+      <div class="meta">发布人：${esc(n.author)} · ${esc(n.time)}</div>
+      <p>${esc(n.content)}</p>
+      <div class="ops" style="margin-top:10px">
+        <button class="btn btn-xs" onclick="togglePin('${n.id}')">${n.pinned?'取消置顶':'置顶'}</button>
+        <button class="btn btn-xs" onclick="openNoticeModal('${n.id}')">编辑</button>
+        <button class="btn btn-xs btn-danger" onclick="delNotice('${n.id}')">删除</button>
+      </div></div>`).join('') : '<div class="card empty">暂无公告</div>'}`;
+}
+function openNoticeModal(id){
+  const n = id? S.notices.find(x=>x.id===id) : {title:'',content:'',pinned:false};
+  openModal(`<h3>${id?'编辑公告':'发布公告'}<span class="x" onclick="closeModal()">×</span></h3>
+    <div class="field"><label>公告标题</label><input id="nf-title" value="${esc(n.title)}" placeholder="请输入标题"></div>
+    <div class="field"><label>公告内容</label><textarea id="nf-content" style="min-height:140px" placeholder="请输入正文">${esc(n.content)}</textarea></div>
+    <div class="field"><label style="font-weight:400"><input type="checkbox" id="nf-pin" ${n.pinned?'checked':''} style="width:auto;margin-right:6px">置顶该公告</label></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveNotice('${id||''}')">发布</button></div>`);
+}
+function saveNotice(id){
+  const title=document.getElementById('nf-title').value.trim(), content=document.getElementById('nf-content').value.trim();
+  if(!title||!content){ toast('标题和内容不能为空','err'); return; }
+  const pinned=document.getElementById('nf-pin').checked;
+  if(id){ Object.assign(S.notices.find(x=>x.id===id),{title,content,pinned}); toast('公告已更新','ok'); }
+  else { S.notices.push({id:uid('n'),title,content,pinned,author:state.user.name,time:nowStr()}); toast('公告发布成功','ok'); }
+  save(); closeModal(); render();
+}
+function delNotice(id){ S.notices=S.notices.filter(n=>n.id!==id); save(); toast('已删除','ok'); render(); }
+function togglePin(id){ const n=S.notices.find(x=>x.id===id); n.pinned=!n.pinned; save(); render(); }
+
+/* ================= 学生端视图 ================= */
+function studentView(view){
+  switch(view){
+    case 'dorm': return vMyDorm();
+    case 'leaves': return vMyLeaves();
+    case 'repairs': return vMyRepairs();
+    case 'notices': return vMyNotices();
+    default: return vMyDorm();
+  }
+}
+const me = () => S.students.find(s=>s.studentId===state.user.username);
+
+function vMyDorm(){
+  const m=me();
+  if(!m || !m.dormId) return '<div class="card empty">尚未分配宿舍，请联系管理员</div>';
+  const d=dormOf(m.dormId), mates=S.students.filter(s=>s.dormId===m.dormId && s.id!==m.id);
+  return `<div class="dorm-hero">
+    <div class="card" style="flex:1.2">
+      <h3 style="margin-bottom:14px">🏠 我的宿舍信息</h3>
+      <div class="kv"><span>楼栋</span><b>${esc(d.building)}</b></div>
+      <div class="kv"><span>房间号</span><b>${esc(d.room)}</b></div>
+      <div class="kv"><span>宿舍类型</span><b>${esc(d.type)}</b></div>
+      <div class="kv"><span>我的床位</span><b>${m.bed||'-'} 号床</b></div>
+      <div class="kv"><span>入住日期</span><b>${esc(m.checkin||'-')}</b></div>
+      <div class="kv"><span>宿舍电话</span><b>0571-8888-6${d.room.slice(0,2)}${d.room.slice(-2)||'00'}</b></div>
+      <div style="margin-top:10px"><span class="sub">设施配置：</span>${d.facilities.map(f=>`<span class="facility-chip">${esc(f)}</span>`).join('')}</div>
+    </div>
+    <div class="card" style="flex:1">
+      <h3 style="margin-bottom:14px">👨‍👩‍👧 室友（${mates.length}人）</h3>
+      ${mates.length? mates.map(s=>`<div class="list-item"><div><b>${esc(s.name)}</b><div class="sub">${esc(s.major)} · ${s.bed||'-'}号床</div></div><span class="sub">${esc(s.phone)}</span></div>`).join('') : '<div class="empty">暂无室友</div>'}
+      <div style="margin-top:14px;padding:12px;background:#f0fdf4;border-radius:10px;color:#047857;font-size:13px">
+        💡 如需请假离校或宿舍设施报修，请使用左侧菜单在线办理。
+      </div>
+    </div>
+  </div>`;
+}
+function vMyLeaves(){
+  const m=me();
+  const list=[...S.leaves].filter(l=>l.studentId===state.user.username).sort((a,b)=>b.time.localeCompare(a.time));
+  return `<div class="page-head">
+      <div><h3>请假申请</h3><div class="desc">在线提交请假申请，实时查看审批进度</div></div>
+      <button class="btn btn-primary" onclick="openLeaveModal()">＋ 申请请假</button>
+    </div>
+    <div class="card" style="padding:6px 14px 14px">
+      <table><thead><tr><th>请假时间</th><th>事由</th><th>申请时间</th><th>状态</th><th>审批意见</th></tr></thead>
+      <tbody>${list.length? list.map(l=>`<tr>
+        <td>${esc(l.start)}<div class="sub">至 ${esc(l.end)}</div></td>
+        <td style="max-width:260px">${esc(l.reason)}</td>
+        <td class="sub">${esc(l.time)}</td>
+        <td><span class="badge ${LEAF_MAP[l.status][1]}">${LEAF_MAP[l.status][0]}</span></td>
+        <td class="sub" style="max-width:220px">${l.status==='pending'?'等待管理员审批':esc(l.note||'—')}</td>
+      </tr>`).join(''):'<tr><td colspan="5" class="empty">暂无请假记录</td></tr>'}</tbody></table>
+    </div>`;
+}
+function openLeaveModal(){
+  const t=new Date(), p=n=>String(n).padStart(2,'0'), today=`${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}`;
+  openModal(`<h3>申请请假 · ${dormLabel(me()?me().dormId:null)}</h3>
+    <div class="form-grid">
+      <div class="field"><label>开始日期</label><input id="lf-start" type="date" value="${today}"></div>
+      <div class="field"><label>结束日期</label><input id="lf-end" type="date" value="${today}"></div>
+      <div class="field full"><label>请假事由</label><textarea id="lf-reason" placeholder="请填写请假原因"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="submitLeave()">提交申请</button></div>`);
+}
+function submitLeave(){
+  const start=document.getElementById('lf-start').value, end=document.getElementById('lf-end').value, reason=document.getElementById('lf-reason').value.trim();
+  if(!start||!end||!reason){ toast('请完整填写申请信息','err'); return; }
+  if(end<start){ toast('结束日期不能早于开始日期','err'); return; }
+  S.leaves.push({id:uid('l'),studentId:state.user.username,name:state.user.name,dormId:me()?me().dormId:null,start,end,reason,status:'pending',time:nowStr()});
+  save(); closeModal(); toast('申请已提交，等待管理员审批','ok'); render();
+}
+function vMyRepairs(){
+  const list=[...S.repairs].filter(r=>r.studentId===state.user.username).sort((a,b)=>b.time.localeCompare(a.time));
+  return `<div class="page-head">
+      <div><h3>报修申请</h3><div class="desc">宿舍设施故障一键报修，进度实时可查</div></div>
+      <button class="btn btn-primary" onclick="openRepairModal()">＋ 提交报修</button>
+    </div>
+    <div class="card" style="padding:6px 14px 14px">
+      <table><thead><tr><th>类型</th><th>问题描述</th><th>报修时间</th><th>状态</th><th>维修进度</th></tr></thead>
+      <tbody>${list.length? list.map(r=>`<tr>
+        <td><span class="badge bg-violet">${esc(r.type)}</span></td>
+        <td style="max-width:260px">${esc(r.desc)}</td>
+        <td class="sub">${esc(r.time)}</td>
+        <td><span class="badge ${REP_MAP[r.status][1]}">${REP_MAP[r.status][0]}</span></td>
+        <td class="sub" style="max-width:240px">${r.handler?esc(r.handler)+'：'+esc(r.note||''):'等待受理'}</td>
+      </tr>`).join(''):'<tr><td colspan="5" class="empty">暂无报修记录</td></tr>'}</tbody></table>
+    </div>`;
+}
+function openRepairModal(){
+  const types=['水管','电路','门窗','空调','家具','网络','其他'];
+  openModal(`<h3>提交报修 · ${dormLabel(me()?me().dormId:null)}</h3>
+    <div class="field"><label>故障类型</label><select id="rf-type">${types.map(t=>`<option>${t}</option>`).join('')}</select></div>
+    <div class="field"><label>问题描述</label><textarea id="rf-desc" placeholder="请描述故障情况，以便维修人员准备"></textarea></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="submitRepair()">提交报修</button></div>`);
+}
+function submitRepair(){
+  const desc=document.getElementById('rf-desc').value.trim();
+  if(!desc){ toast('请描述故障情况','err'); return; }
+  S.repairs.push({id:uid('r'),studentId:state.user.username,name:state.user.name,dormId:me()?me().dormId:null,
+    type:document.getElementById('rf-type').value,desc,status:'pending',time:nowStr()});
+  save(); closeModal(); toast('报修已提交，请等待管理员受理','ok'); render();
+}
+function vMyNotices(){
+  const list=[...S.notices].sort((a,b)=>(b.pinned-a.pinned)||b.time.localeCompare(a.time));
+  return `<div class="page-head"><div><h3>校园公告</h3><div class="desc">学校与宿舍的最新通知公告</div></div></div>
+    ${list.map(n=>`<div class="notice-card">
+      <h4>${n.pinned?'<span class="badge bg-red">置顶</span>':''}${esc(n.title)}</h4>
+      <div class="meta">发布人：${esc(n.author)} · ${esc(n.time)}</div>
+      <p>${esc(n.content)}</p></div>`).join('') || '<div class="card empty">暂无公告</div>'}`;
+}
+
+/* 启动 */
+render();
+</script>
+</body>
+</html>
